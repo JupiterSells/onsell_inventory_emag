@@ -1,0 +1,126 @@
+name: Deploy eMAG API to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 134.209.245.181 >> ~/.ssh/known_hosts
+          
+          if ! ssh-keygen -l -f ~/.ssh/deploy_key >/dev/null 2>&1; then
+            echo "Invalid SSH key format in secrets!"
+            exit 1
+          fi
+          
+          echo "SSH key loaded successfully"
+
+      - name: Test SSH Connection
+        run: |
+          echo "Testing SSH connection..."
+          if ssh -i ~/.ssh/deploy_key -o ConnectTimeout=10 -o StrictHostKeyChecking=yes root@134.209.245.181 "echo 'SSH connection successful!' && whoami && pwd"; then
+            echo "SSH connection test passed!"
+          else
+            echo "SSH connection test failed!"
+            exit 1
+          fi
+
+      - name: Copy files to server
+        run: |
+          echo "Copying files to server..."
+          rsync -avz --delete \
+            --exclude 'node_modules/' \
+            --exclude 'build/' \
+            --exclude 'dist/' \
+            --exclude 'uploads/' \
+            --exclude 'logs/' \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.env' \
+            --exclude '.env.local' \
+            --exclude '.env.development' \
+            --exclude '*.log' \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" \
+            ./ \
+            root@134.209.245.181:/root/kstock/emag_api/
+          echo "Files copied successfully!"
+          
+          echo "Verifying Docker files were copied..."
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes root@134.209.245.181 \
+            "ls -la /root/kstock/emag_api/Dockerfile /root/kstock/emag_api/docker-compose.yml"
+
+      - name: Create .env file on server
+        run: |
+          echo "Creating .env file on server..."
+          echo "# eMAG API Configuration" > /tmp/.env
+          echo "API_PORT=8002" >> /tmp/.env
+          echo "NODE_ENV=production" >> /tmp/.env
+          echo "" >> /tmp/.env
+          echo "# eMAG Platform" >> /tmp/.env
+          echo "EMAG_PLATFORM=ro" >> /tmp/.env
+          echo "" >> /tmp/.env
+          echo "# Note: Credentials are managed via the KStock admin panel" >> /tmp/.env
+          echo "# The main API will push credentials to this microservice dynamically" >> /tmp/.env
+          echo "# Fallback credentials (optional):" >> /tmp/.env
+          echo "EMAG_USERNAME=${{ secrets.EMAG_USERNAME }}" >> /tmp/.env
+          echo "EMAG_PASSWORD=${{ secrets.EMAG_PASSWORD }}" >> /tmp/.env
+          echo "" >> /tmp/.env
+          echo "# CORS Origins" >> /tmp/.env
+          echo "CORS_ORIGINS=https://kstock.ro,https://emag.kstock.ro" >> /tmp/.env
+          
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
+            /tmp/.env \
+            root@134.209.245.181:/root/kstock/emag_api/.env
+          
+          rm /tmp/.env
+          echo ".env file copied to server!"
+
+      - name: Deploy
+        run: |
+          echo "Deploying application..."
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes root@134.209.245.181 << 'EOF'
+            cd /root/kstock/emag_api
+            echo "Current directory: $(pwd)"
+            echo "Files in directory:"
+            ls -la
+            
+            echo "Checking Docker files..."
+            ls -la Dockerfile docker-compose.yml
+            
+            echo "Stopping existing container..."
+            docker compose down || true
+            
+            echo "Building eMAG API container..."
+            docker compose build --no-cache emag_api
+            
+            echo "Starting eMAG API container..."
+            docker compose up -d emag_api
+            
+            echo "Waiting for container to be healthy..."
+            sleep 10
+            
+            echo "Container status:"
+            docker compose ps
+            
+            echo "Health check:"
+            curl -s http://localhost:8002/health || echo "Health check pending..."
+            
+            echo "API logs (last 30 lines):"
+            docker compose logs --tail=30 emag_api
+            
+            echo "Deployment completed successfully!"
+            echo "API available at: https://emag.kstock.ro"
+          EOF
