@@ -72,11 +72,7 @@ jobs:
           echo "# eMAG Platform" >> /tmp/.env
           echo "EMAG_PLATFORM=ro" >> /tmp/.env
           echo "" >> /tmp/.env
-          echo "# Note: Credentials are managed via the KStock admin panel" >> /tmp/.env
-          echo "# The main API will push credentials to this microservice dynamically" >> /tmp/.env
-          echo "# Fallback credentials (optional):" >> /tmp/.env
-          echo "EMAG_USERNAME=${{ secrets.EMAG_USERNAME }}" >> /tmp/.env
-          echo "EMAG_PASSWORD=${{ secrets.EMAG_PASSWORD }}" >> /tmp/.env
+          echo "# Credentials are managed dynamically via the KStock admin panel" >> /tmp/.env
           echo "" >> /tmp/.env
           echo "# CORS Origins" >> /tmp/.env
           echo "CORS_ORIGINS=https://kstock.ro,https://emag.kstock.ro" >> /tmp/.env
