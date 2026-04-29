@@ -1,4 +1,4 @@
-name: Build & Deploy eMAG API
+name: Build eMAG API
 
 on:
   push:
@@ -25,46 +25,3 @@ jobs:
             registry.digitalocean.com/kstock/emag:${{ github.sha }}
           cache-from: type=registry,ref=registry.digitalocean.com/kstock/emag:buildcache
           cache-to: type=registry,ref=registry.digitalocean.com/kstock/emag:buildcache,mode=max
-
-  deploy:
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DO_API_TOKEN }}
-
-      - name: Discover tenants and deploy
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-
-          HOSTS=$(doctl compute droplet list --tag-name kstock --format PublicIPv4 --no-header 2>/dev/null | tr '\n' ' ')
-
-          if [ -z "$HOSTS" ]; then
-            echo "No active kstock droplets found."
-            exit 0
-          fi
-
-          echo "Deploying to: $HOSTS"
-
-          FAILED=0
-          for HOST in $HOSTS; do
-            echo ""
-            echo "--- Deploying to $HOST ---"
-            ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
-            (
-              ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o ConnectTimeout=10 root@"$HOST" << 'DEPLOY'
-                set -e
-                cd /root/kstock
-                docker compose pull emag_api
-                docker compose up -d emag_api
-                echo "Deployed emag_api on $(hostname)"
-          DEPLOY
-            ) || { echo "::warning::Deploy to $HOST failed"; FAILED=1; }
-          done
-
-          if [ "$FAILED" -eq 1 ]; then
-            echo "::warning::Some deployments failed — check logs above"
-          fi
