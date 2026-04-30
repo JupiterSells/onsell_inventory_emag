@@ -10,6 +10,7 @@ import categoriesRouter from './routes/categories';
 import invoicesRouter from './routes/invoices';
 import configRouter from './routes/config';
 import { errorHandler } from './middleware/errorHandler';
+import { requireInternalApiKey } from './middleware/internalAuth';
 
 config();
 
@@ -78,6 +79,7 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
+app.use('/api', requireInternalApiKey);
 app.use('/api/config', configRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/orders', ordersRouter);
