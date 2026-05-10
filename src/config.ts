@@ -45,3 +45,8 @@ export const getDefaultPlatform = (): Platform => {
   const platform = process.env.EMAG_PLATFORM;
   return (platform as Platform) || 'ro';
 };
+
+export const isDemoMode = (): boolean => {
+  const val = process.env.DEMO_MODE;
+  return val === 'true' || val === '1';
+};

@@ -1,0 +1,31 @@
+name: Promote to Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. 1.2.3) — optional'
+        required: false
+        type: string
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_API_TOKEN }}
+      - run: doctl registry login
+      - name: Promote to release
+        run: |
+          IMAGE="registry.digitalocean.com/kstock/emag"
+          docker pull "$IMAGE:latest"
+          docker tag "$IMAGE:latest" "$IMAGE:release"
+          docker push "$IMAGE:release"
+          if [ -n "${{ inputs.version }}" ]; then
+            docker tag "$IMAGE:latest" "$IMAGE:v${{ inputs.version }}"
+            docker push "$IMAGE:v${{ inputs.version }}"
+          fi
+          echo "Promoted $IMAGE:latest -> :release"

@@ -1,4 +1,4 @@
-import { Platform, getApiBaseUrl, getEnvCredentials, getDefaultPlatform } from './config';
+import { Platform, getApiBaseUrl, getEnvCredentials, getDefaultPlatform, isDemoMode } from './config';
 import { ApiClient } from './utils/apiClient';
 import { EmagApiResponse } from './interfaces/ICommon';
 import { EmagProduct, ProductFilterOptions, ProductSaveRequest, OfferSaveRequest, MeasurementsSaveRequest, CampaignProposalRequest } from './interfaces/IProduct';
@@ -204,6 +204,11 @@ export class Emag {
 
 export const createEmagClient = (platform?: Platform): Emag => {
   const p = platform || getDefaultPlatform();
+
+  if (isDemoMode()) {
+    return new Emag('demo', 'demo', p);
+  }
+
   const config = getEnvCredentials(p);
   
   if (!config.username || !config.password) {
