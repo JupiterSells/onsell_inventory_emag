@@ -1,16 +1,16 @@
 import { Router, Request, Response } from 'express';
-import { asyncHandler, requireEmagClient } from '../middleware';
+import { asyncHandler, getClientForRequest } from '../middleware';
 
 const router = Router();
 
 router.get('/categories', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const result = await client.getInvoiceCategories();
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));
 
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const filters: any = {};
   if (req.query.category) filters.category = req.query.category;
   if (req.query.number) filters.number = req.query.number;
@@ -23,7 +23,7 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 router.get('/customer', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const filters: any = {};
   if (req.query.category) filters.category = req.query.category;
   if (req.query.order_id) filters.order_id = req.query.order_id;

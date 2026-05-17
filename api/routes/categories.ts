@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { asyncHandler, requireEmagClient } from '../middleware';
+import { asyncHandler, getClientForRequest } from '../middleware';
 
 const router = Router();
 
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const filters: any = {};
   if (req.query.page) filters.currentPage = parseInt(req.query.page as string, 10);
   if (req.query.limit) filters.itemsPerPage = parseInt(req.query.limit as string, 10);
@@ -17,19 +17,19 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 router.get('/count', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const result = await client.countCategories();
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));
 
 router.get('/vat', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const result = await client.getVatRates();
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));
 
 router.get('/handling-time', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const result = await client.getHandlingTimeValues();
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));

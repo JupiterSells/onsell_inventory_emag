@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { asyncHandler, requireEmagClient } from '../middleware';
+import { asyncHandler, getClientForRequest } from '../middleware';
 
 const router = Router();
 
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const filters: any = {};
   if (req.query.page) filters.currentPage = parseInt(req.query.page as string, 10);
   if (req.query.limit) filters.itemsPerPage = parseInt(req.query.limit as string, 10);
@@ -20,7 +20,7 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 router.get('/count', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const filters: any = {};
   if (req.query.request_status) filters.request_status = parseInt(req.query.request_status as string, 10);
   const result = await client.countRma(filters);
@@ -28,7 +28,7 @@ router.get('/count', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 router.post('/save', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const result = await client.saveRma(req.body);
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));

@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { asyncHandler, requireEmagClient } from '../middleware';
+import { asyncHandler, getClientForRequest } from '../middleware';
 
 const router = Router();
 
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const filters: any = {};
   if (req.query.page) filters.currentPage = parseInt(req.query.page as string, 10);
   if (req.query.limit) filters.itemsPerPage = parseInt(req.query.limit as string, 10);
@@ -19,7 +19,7 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 router.get('/count', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const filters: any = {};
   if (req.query.status) filters.status = parseInt(req.query.status as string, 10);
   const result = await client.countProducts(filters);
@@ -27,33 +27,33 @@ router.get('/count', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 router.get('/by-id/:id', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const result = await client.getProducts({ id: parseInt(req.params.id, 10) });
   const product = result.results?.[0] || null;
   res.json({ success: !result.isError, data: product, messages: result.messages });
 }));
 
 router.get('/by-pnk/:pnk', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const result = await client.getProducts({ part_number_key: req.params.pnk });
   const product = result.results?.[0] || null;
   res.json({ success: !result.isError, data: product, messages: result.messages });
 }));
 
 router.post('/save', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const result = await client.saveProductOffer(req.body);
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));
 
 router.post('/offer/save', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const result = await client.saveOffer(req.body);
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));
 
 router.patch('/stock/:productId', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const productId = parseInt(req.params.productId, 10);
   const { stock } = req.body;
   const result = await client.updateStock(productId, stock);
@@ -61,26 +61,26 @@ router.patch('/stock/:productId', asyncHandler(async (req: Request, res: Respons
 }));
 
 router.post('/measurements', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const result = await client.saveMeasurements(req.body);
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));
 
 router.post('/find-by-eans', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const { eans } = req.body;
   const result = await client.findByEans(eans);
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));
 
 router.post('/campaigns/propose', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const result = await client.saveCampaignProposals(req.body);
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));
 
 router.get('/smart-deals/:productId', asyncHandler(async (req: Request, res: Response) => {
-  const client = requireEmagClient();
+  const client = getClientForRequest(req);
   const result = await client.checkSmartDealsPrice(parseInt(req.params.productId, 10));
   res.json({ success: true, data: result });
 }));
