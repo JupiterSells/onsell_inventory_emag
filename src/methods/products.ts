@@ -57,3 +57,10 @@ export const findByEans = async (
   });
   return client.get('/documentation/find_by_eans', params);
 };
+
+export const matchProduct = async (
+  client: ApiClient,
+  data: { name: string; brand: string; part_number: string; ean?: string[] }
+): Promise<EmagApiResponse<any>> => {
+  return client.post('/product_offer/match', [data]);
+};

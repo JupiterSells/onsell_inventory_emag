@@ -1,0 +1,18 @@
+{
+  "roots": [
+    "/Volumes/Development/eprism/wisebuy/services/emag"
+  ],
+  "include_extensions": [
+    ".ts",
+    ".tsx",
+    ".js",
+    ".jsx",
+    ".json",
+    ".md",
+    ".yml",
+    ".yaml"
+  ],
+  "ignore_patterns": [
+    "**/.*"
+  ]
+}

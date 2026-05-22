@@ -44,6 +44,12 @@ router.post('/:id/acknowledge', asyncHandler(async (req: Request, res: Response)
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));
 
+router.post('/:orderId/unlock-courier', asyncHandler(async (req: Request, res: Response) => {
+  const client = getClientForRequest(req);
+  const result = await client.unlockCourier(parseInt(req.params.orderId, 10));
+  res.json({ success: !result.isError, data: result.results, messages: result.messages });
+}));
+
 router.post('/save', asyncHandler(async (req: Request, res: Response) => {
   const client = getClientForRequest(req);
   const result = await client.saveOrder(req.body);

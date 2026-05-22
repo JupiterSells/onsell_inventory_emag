@@ -17,6 +17,7 @@ import * as categoryMethods from './methods/categories';
 import * as localityMethods from './methods/localities';
 import * as invoiceMethods from './methods/invoices';
 import * as campaignMethods from './methods/campaigns';
+import * as messageMethods from './methods/messages';
 
 export class Emag {
   public platform: Platform;
@@ -69,6 +70,10 @@ export class Emag {
     return productMethods.findByEans(this.client, eans);
   }
 
+  async matchProduct(data: { name: string; brand: string; part_number: string; ean?: string[] }): Promise<EmagApiResponse<any>> {
+    return productMethods.matchProduct(this.client, data);
+  }
+
   // ============ ORDERS ============
 
   async getOrders(filters?: OrderFilterOptions): Promise<EmagApiResponse<EmagOrder[]>> {
@@ -85,6 +90,10 @@ export class Emag {
 
   async acknowledgeOrder(orderId: number): Promise<EmagApiResponse<any>> {
     return orderMethods.acknowledgeOrder(this.client, orderId);
+  }
+
+  async unlockCourier(orderId: number): Promise<EmagApiResponse<any>> {
+    return orderMethods.unlockCourier(this.client, orderId);
   }
 
   // ============ ATTACHMENTS ============
@@ -199,6 +208,20 @@ export class Emag {
 
   async checkSmartDealsPrice(productId: number): Promise<any> {
     return campaignMethods.checkSmartDealsPrice(this.client, productId);
+  }
+
+  // ============ MESSAGES ============
+
+  async getMessages(filters?: messageMethods.MessageFilterOptions): Promise<EmagApiResponse<any[]>> {
+    return messageMethods.readMessages(this.client, filters);
+  }
+
+  async countMessages(filters?: messageMethods.MessageFilterOptions): Promise<EmagApiResponse<number>> {
+    return messageMethods.countMessages(this.client, filters);
+  }
+
+  async saveMessage(data: { order_id: number; text: string }): Promise<EmagApiResponse<any>> {
+    return messageMethods.saveMessage(this.client, data);
   }
 }
 

@@ -9,6 +9,7 @@ import awbRouter from './routes/awb';
 import categoriesRouter from './routes/categories';
 import invoicesRouter from './routes/invoices';
 import configRouter from './routes/config';
+import messagesRouter from './routes/messages';
 import { errorHandler } from './middleware/errorHandler';
 import { requireInternalApiKey } from './middleware/internalAuth';
 
@@ -75,6 +76,7 @@ app.get('/', (req: Request, res: Response) => {
       categories: '/api/categories',
       invoices: '/api/invoices',
       config: '/api/config',
+      messages: '/api/messages',
     },
   });
 });
@@ -87,6 +89,7 @@ app.use('/api/rma', rmaRouter);
 app.use('/api/awb', awbRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/invoices', invoicesRouter);
+app.use('/api/messages', messagesRouter);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({

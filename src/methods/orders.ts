@@ -28,3 +28,10 @@ export const acknowledgeOrder = async (
 ): Promise<EmagApiResponse<any>> => {
   return client.post<any>(`/order/acknowledge/${orderId}`, {});
 };
+
+export const unlockCourier = async (
+  client: ApiClient,
+  orderId: number
+): Promise<EmagApiResponse<any>> => {
+  return client.post(`/order/${orderId}/unlock-courier`);
+};
