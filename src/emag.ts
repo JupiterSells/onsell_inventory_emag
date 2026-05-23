@@ -1,4 +1,5 @@
-import { Platform, getApiBaseUrl, getEnvCredentials, getDefaultPlatform, isDemoMode } from './config';
+import axios from 'axios';
+import { Platform, getApiBaseUrl, getMarketplaceUrl, getEnvCredentials, getDefaultPlatform, isDemoMode } from './config';
 import { ApiClient } from './utils/apiClient';
 import { EmagApiResponse } from './interfaces/ICommon';
 import { EmagProduct, ProductFilterOptions, ProductSaveRequest, OfferSaveRequest, MeasurementsSaveRequest, CampaignProposalRequest } from './interfaces/IProduct';
@@ -222,6 +223,25 @@ export class Emag {
 
   async saveMessage(data: { order_id: number; text: string }): Promise<EmagApiResponse<any>> {
     return messageMethods.saveMessage(this.client, data);
+  }
+
+  // ============ COMMISSION (Swagger REST API) ============
+
+  async getCommissionEstimate(productExtId: number): Promise<{ code: number; data: { value: number; id: number } } | null> {
+    if (isDemoMode()) return null;
+    try {
+      const marketplaceUrl = getMarketplaceUrl(this.platform);
+      const response = await axios.get(
+        `${marketplaceUrl}/api/v1/commission/estimate/${productExtId}`,
+        {
+          headers: { Authorization: `Basic ${this.client.getAuthToken()}` },
+          timeout: 10000,
+        }
+      );
+      return response.data;
+    } catch {
+      return null;
+    }
   }
 }
 

@@ -85,4 +85,14 @@ router.get('/smart-deals/:productId', asyncHandler(async (req: Request, res: Res
   res.json({ success: true, data: result });
 }));
 
+router.get('/commission/:productId', asyncHandler(async (req: Request, res: Response) => {
+  const client = getClientForRequest(req);
+  const result = await client.getCommissionEstimate(parseInt(req.params.productId, 10));
+  if (result?.data) {
+    res.json({ success: true, data: result.data });
+  } else {
+    res.json({ success: false, data: null });
+  }
+}));
+
 export default router;

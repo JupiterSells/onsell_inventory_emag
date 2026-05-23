@@ -111,6 +111,10 @@ export class ApiClient {
   getUsername(): string {
     return this.config.username;
   }
+
+  getAuthToken(): string {
+    return this.token;
+  }
 }
 
 export const createAuthToken = (username: string, password: string): string => {
