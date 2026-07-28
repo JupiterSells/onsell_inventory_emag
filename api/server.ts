@@ -1,3 +1,5 @@
+// Must stay first: patches axios before any client is constructed.
+import '../src/utils/demoGuard';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { config } from 'dotenv';

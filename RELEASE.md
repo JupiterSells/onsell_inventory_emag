@@ -65,9 +65,19 @@ npm run deploy -- --service emag_api
 
 ## Demo Tenant
 
-The `demo` tenant (demo.onsell.ro) runs with `DEMO_MODE=true`:
-- All integration services return mock/fixture data
-- No external API calls are made (Trendyol, eMAG, SAGA, FanCourier, Oblio)
+The `demo` tenant (demo.onsell.ro) is a public showcase. It runs the same images as every other
+tenant, with `DEMO_MODE=true`:
+
+- Shared login `demo` / `demo1234`, advertised on the landing page, with full write access
+- All 11 integrations answer from the demo engine in node_api: eMAG, Shopify, Trendyol, SAGA,
+  Oblio, FGO, SmartBill, FAN Courier, Cargus, DPD, Sameday
+- Mocked actions are stateful — a generated AWB or invoice is stored in the `demo_feed`
+  collection and shows up in later list, tracking, status and PDF calls
+- `demoSimulatorJob` drips in new channel orders and returns, and advances AWB, invoice and
+  order lifecycles, so the data moves while someone is looking at it
+- Every microservice installs a fail-closed outbound guard, so no credential can produce a real
+  external call even if a proxy short-circuit is missed
+- The database is dropped and reseeded nightly at 03:30 Europe/Bucharest
 - The UI is identical to production
 - Company: COMPANIE DEMO SRL
 
@@ -78,3 +88,10 @@ When `DEMO_MODE=true`, the eMAG service bypasses all real eMAG Marketplace API i
 - **No calls to the eMAG API** — Product listing, order import, stock updates, invoice uploads, and AWB generation are all bypassed. No HTTP requests are made to the eMAG Marketplace API.
 - **Fixture data is returned** — All endpoints return deterministic mock responses matching the eMAG API contract, allowing the demo tenant to exercise the full product and order lifecycle.
 - **Scheduled jobs are disabled** — Periodic tasks (order sync, offer sync, RMA polling) do not run in demo mode.
+
+**Two layers, not one.** In practice this service is rarely reached in demo mode: node_api's proxy
+layer short-circuits first, so the demo tenant does not depend on this service answering. What lives
+here is the fail-closed net — `src/utils/demoGuard.ts` is imported as the first thing the process does
+(`api/server.ts`) and rejects every outbound HTTP request while `DEMO_MODE` is set. Its purpose is to make
+a real external call impossible, including from code paths that call the HTTP client directly and so
+bypass any in-service fixture.
