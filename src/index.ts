@@ -1,6 +1,6 @@
 export { Emag, createEmagClient, createDefaultClient } from './emag';
 
-export { Platform, EmagConfig, getApiBaseUrl, getMarketplaceUrl, getEnvCredentials, getDefaultPlatform, isDemoMode, MARKETPLACE_API_URLS, MARKETPLACE_URLS, DEFAULT_CURRENCY } from './config';
+export { Platform, EmagConfig, getApiBaseUrl, getMarketplaceUrl, getEnvCredentials, getDefaultPlatform, isValidPlatform, isDemoMode, MARKETPLACE_API_URLS, MARKETPLACE_URLS, DEFAULT_CURRENCY } from './config';
 
 export { ApiClient, ApiClientConfig, EmagApiResponse as ApiResponse, createAuthToken } from './utils/apiClient';
 

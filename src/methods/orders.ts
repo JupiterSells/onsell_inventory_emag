@@ -17,9 +17,10 @@ export const countOrders = async (
 
 export const saveOrder = async (
   client: ApiClient,
-  data: Partial<EmagOrder>
+  data: Partial<EmagOrder> | Partial<EmagOrder>[]
 ): Promise<EmagApiResponse<any>> => {
-  return client.post<any>('/order/save', [data]);
+  const items = Array.isArray(data) ? data : [data];
+  return client.save<any>('/order/save', items);
 };
 
 export const acknowledgeOrder = async (

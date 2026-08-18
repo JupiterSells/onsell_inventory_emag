@@ -13,26 +13,27 @@ export interface EmagRmaProduct {
 
 export interface EmagRmaAwb {
   reservation_id?: number;
+  // Pickup details belong inside each AWB entry (schema RMAAWB), not at the top level.
+  pickup_country?: string;
+  pickup_suburb?: string;
+  pickup_city?: string;
+  pickup_address?: string;
+  pickup_address_id?: number;
+  pickup_zipcode?: string;
+  pickup_date?: string;
 }
 
 export interface EmagRma {
   emag_id: number;
   id?: number;
   order_id: number;
-  type: number; // 2=fulfilled by eMAG, 3=fulfilled by seller
+  type: number; // 2=fulfilled by eMAG, 3=fulfilled by seller (required on save)
   invoice_number?: string;
   customer_name: string;
   customer_company?: string;
   customer_phone: string;
   products: EmagRmaProduct[];
   awbs?: EmagRmaAwb[];
-  pickup_country: string;
-  pickup_suburb: string;
-  pickup_city: string;
-  pickup_address: string;
-  pickup_address_id?: number;
-  pickup_zipcode?: string;
-  pickup_date?: string;
   pickup_locality_id: number;
   pickup_method: number; // 1=eMAG courier, 2=Seller courier, 3=Sent by client
   return_reason: number;

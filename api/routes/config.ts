@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { resetClient, getEmagClient, getPlatform, getUsername } from '../middleware/emagClient';
-import { Emag, Platform } from '../../src';
+import { Emag, Platform, isValidPlatform } from '../../src';
 
 const router = Router();
 
@@ -38,10 +38,10 @@ router.post('/credentials', (req: Request, res: Response) => {
   }
 
   const p = platform || 'ro';
-  if (!['ro'].includes(p)) {
+  if (!isValidPlatform(p)) {
     res.status(400).json({
       success: false,
-      error: 'Invalid platform. Must be "ro"',
+      error: 'Invalid platform. Must be one of: ro, bg, hu, fd_ro, fd_bg',
     });
     return;
   }

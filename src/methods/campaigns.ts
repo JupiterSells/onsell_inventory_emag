@@ -6,7 +6,7 @@ export const saveCampaignProposals = async (
   data: CampaignProposalRequest | CampaignProposalRequest[]
 ): Promise<EmagApiResponse<any>> => {
   const items = Array.isArray(data) ? data : [data];
-  return client.post<any>('/campaign_proposals/save', items);
+  return client.save<any>('/campaign_proposals/save', items);
 };
 
 export const checkSmartDealsPrice = async (

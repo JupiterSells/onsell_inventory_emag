@@ -5,7 +5,9 @@ export const readCategories = async (
   client: ApiClient,
   filters?: CategoryFilterOptions
 ): Promise<EmagApiResponse<EmagCategory[]>> => {
-  return client.post<EmagCategory[]>('/category/read', filters);
+  // `language` is a query parameter (`category/read?language=en`), not a body filter.
+  const { language, ...body } = filters || {};
+  return client.post<EmagCategory[]>('/category/read', body, language ? { language } : undefined);
 };
 
 export const countCategories = async (

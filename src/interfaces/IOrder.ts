@@ -1,6 +1,7 @@
 export interface EmagOrderProduct {
   id: number;
   product_id: number;
+  name?: string;
   part_number?: string;
   ext_part_number?: string;
   created?: string;

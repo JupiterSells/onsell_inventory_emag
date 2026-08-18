@@ -12,6 +12,8 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
   if (req.query.name) filters.name = req.query.name;
   if (req.query.is_allowed) filters.is_allowed = parseInt(req.query.is_allowed as string, 10);
   if (req.query.language) filters.language = req.query.language;
+  if (req.query.valuesCurrentPage) filters.valuesCurrentPage = parseInt(req.query.valuesCurrentPage as string, 10);
+  if (req.query.valuesPerPage) filters.valuesPerPage = parseInt(req.query.valuesPerPage as string, 10);
   const result = await client.getCategories(filters);
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));

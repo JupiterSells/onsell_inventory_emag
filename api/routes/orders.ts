@@ -3,19 +3,32 @@ import { asyncHandler, getClientForRequest } from '../middleware';
 
 const router = Router();
 
+// Parse a query value that may be a single number or a comma-separated list
+// into either a number or a number[] (eMAG accepts both for status/payment_mode_id).
+const parseNumberOrList = (value: unknown): number | number[] | undefined => {
+  if (value == null) return undefined;
+  const raw = String(value);
+  if (raw.includes(',')) {
+    const list = raw.split(',').map((v) => parseInt(v.trim(), 10)).filter((n) => !Number.isNaN(n));
+    return list.length ? list : undefined;
+  }
+  const n = parseInt(raw, 10);
+  return Number.isNaN(n) ? undefined : n;
+};
+
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
   const client = getClientForRequest(req);
   const filters: any = {};
   if (req.query.page) filters.currentPage = parseInt(req.query.page as string, 10);
   if (req.query.limit) filters.itemsPerPage = parseInt(req.query.limit as string, 10);
-  if (req.query.status) filters.status = parseInt(req.query.status as string, 10);
+  if (req.query.status !== undefined) filters.status = parseNumberOrList(req.query.status);
   if (req.query.id) filters.id = parseInt(req.query.id as string, 10);
   if (req.query.createdAfter) filters.createdAfter = req.query.createdAfter;
   if (req.query.createdBefore) filters.createdBefore = req.query.createdBefore;
   if (req.query.modifiedAfter) filters.modifiedAfter = req.query.modifiedAfter;
   if (req.query.modifiedBefore) filters.modifiedBefore = req.query.modifiedBefore;
   if (req.query.type) filters.type = parseInt(req.query.type as string, 10);
-  if (req.query.payment_mode_id) filters.payment_mode_id = parseInt(req.query.payment_mode_id as string, 10);
+  if (req.query.payment_mode_id !== undefined) filters.payment_mode_id = parseNumberOrList(req.query.payment_mode_id);
   if (req.query.is_complete) filters.is_complete = parseInt(req.query.is_complete as string, 10);
 
   const result = await client.getOrders(filters);
@@ -58,7 +71,8 @@ router.post('/save', asyncHandler(async (req: Request, res: Response) => {
 
 router.get('/:orderId/attachments', asyncHandler(async (req: Request, res: Response) => {
   const client = getClientForRequest(req);
-  const result = await client.getAttachments(parseInt(req.params.orderId, 10));
+  const orderType = req.query.order_type ? parseInt(req.query.order_type as string, 10) : undefined;
+  const result = await client.getAttachments(parseInt(req.params.orderId, 10), orderType);
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));
 

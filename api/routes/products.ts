@@ -13,6 +13,10 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
   if (req.query.part_number) filters.part_number = req.query.part_number;
   if (req.query.part_number_key) filters.part_number_key = req.query.part_number_key;
   if (req.query.validation_status) filters.validation_status = parseInt(req.query.validation_status as string, 10);
+  if (req.query.general_stock) filters.general_stock = parseInt(req.query.general_stock as string, 10);
+  if (req.query.estimated_stock) filters.estimated_stock = parseInt(req.query.estimated_stock as string, 10);
+  if (req.query.offer_validation_status) filters.offer_validation_status = parseInt(req.query.offer_validation_status as string, 10);
+  if (req.query.translation_validation_status) filters.translation_validation_status = parseInt(req.query.translation_validation_status as string, 10);
 
   const result = await client.getProducts(filters);
   res.json({ success: !result.isError, data: result.results, messages: result.messages, meta: { page: filters.currentPage, limit: filters.itemsPerPage } });

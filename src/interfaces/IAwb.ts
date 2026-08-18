@@ -3,6 +3,7 @@ export interface AwbSender {
   contact: string;
   phone1: string;
   phone2?: string;
+  legal_entity?: number;
   address_id?: string;
   locality_id: number;
   street: string;

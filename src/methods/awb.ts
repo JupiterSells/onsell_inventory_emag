@@ -10,9 +10,10 @@ export const readAwb = async (
 
 export const saveAwb = async (
   client: ApiClient,
-  data: AwbSaveRequest
+  data: AwbSaveRequest | AwbSaveRequest[]
 ): Promise<EmagApiResponse<any>> => {
-  return client.post<any>('/awb/save', [data]);
+  const items = Array.isArray(data) ? data : [data];
+  return client.save<any>('/awb/save', items);
 };
 
 export const readAwbPdf = async (
@@ -40,7 +41,7 @@ export const savePackages = async (
   client: ApiClient,
   data: AwbPackagePreset[]
 ): Promise<EmagApiResponse<any>> => {
-  return client.post<any>('/awb/package/save', data);
+  return client.save<any>('/awb/package/save', data);
 };
 
 export const readVolumetry = async (

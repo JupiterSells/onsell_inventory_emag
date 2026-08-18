@@ -10,7 +10,7 @@ import {
 export const readInvoiceCategories = async (
   client: ApiClient
 ): Promise<EmagApiResponse<EmagInvoiceCategory[]>> => {
-  return client.post<EmagInvoiceCategory[]>('/invoice/categories/read', {});
+  return client.post<EmagInvoiceCategory[]>('/invoice/categories', {});
 };
 
 export const readInvoices = async (

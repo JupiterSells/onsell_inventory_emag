@@ -5,4 +5,3 @@ export { default as awbRouter } from './awb';
 export { default as categoriesRouter } from './categories';
 export { default as invoicesRouter } from './invoices';
 export { default as configRouter } from './config';
-export { default as messagesRouter } from './messages';

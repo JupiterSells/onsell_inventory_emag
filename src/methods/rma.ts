@@ -17,7 +17,8 @@ export const countRma = async (
 
 export const saveRma = async (
   client: ApiClient,
-  data: Partial<EmagRma>
+  data: Partial<EmagRma> | Partial<EmagRma>[]
 ): Promise<EmagApiResponse<any>> => {
-  return client.post<any>('/rma/save', [data]);
+  const items = Array.isArray(data) ? data : [data];
+  return client.save<any>('/rma/save', items);
 };

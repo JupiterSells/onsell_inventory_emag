@@ -20,7 +20,7 @@ export const saveProductOffer = async (
   data: ProductSaveRequest | ProductSaveRequest[]
 ): Promise<EmagApiResponse<any>> => {
   const items = Array.isArray(data) ? data : [data];
-  return client.post<any>('/product_offer/save', items);
+  return client.save<any>('/product_offer/save', items);
 };
 
 export const saveOffer = async (
@@ -28,7 +28,7 @@ export const saveOffer = async (
   data: OfferSaveRequest | OfferSaveRequest[]
 ): Promise<EmagApiResponse<any>> => {
   const items = Array.isArray(data) ? data : [data];
-  return client.post<any>('/offer/save', items);
+  return client.save<any>('/offer/save', items);
 };
 
 export const updateStock = async (
@@ -44,7 +44,7 @@ export const saveMeasurements = async (
   data: MeasurementsSaveRequest | MeasurementsSaveRequest[]
 ): Promise<EmagApiResponse<any>> => {
   const items = Array.isArray(data) ? data : [data];
-  return client.post<any>('/measurements/save', items);
+  return client.save<any>('/measurements/save', items);
 };
 
 export const findByEans = async (
@@ -56,11 +56,4 @@ export const findByEans = async (
     params[`eans[${i}]`] = ean;
   });
   return client.get('/documentation/find_by_eans', params);
-};
-
-export const matchProduct = async (
-  client: ApiClient,
-  data: { name: string; brand: string; part_number: string; ean?: string[] }
-): Promise<EmagApiResponse<any>> => {
-  return client.post('/product_offer/match', [data]);
 };
