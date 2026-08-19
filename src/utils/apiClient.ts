@@ -15,6 +15,7 @@ export interface EmagApiResponse<T = any> {
 
 const DEMO_FIXTURES: Record<string, any> = {
   'POST:/product_offer/read': { isError: false, messages: [], results: [] },
+  'POST:/product_offer/save': { isError: false, messages: [], results: [] },
   'POST:/order/read': { isError: false, messages: [], results: [] },
   'POST:/product_offer/count': { isError: false, messages: [], results: 0 },
   'POST:/order/count': { isError: false, messages: [], results: 0 },

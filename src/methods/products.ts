@@ -31,12 +31,53 @@ export const saveOffer = async (
   return client.save<any>('/offer/save', items);
 };
 
+/**
+ * Stock-only updates used to PATCH /offer_stock/{id}. eMAG still documents
+ * that resource, but the live API rejects it with HTTP 400 (method/body).
+ * Offer updates go through product_offer/save with the mandatory offer keys
+ * (id, status, sale_price, vat_id, handling_time, stock) and without
+ * documentation fields.
+ */
 export const updateStock = async (
   client: ApiClient,
   productId: number,
   stock: { warehouse_id: number; value: number }[]
-): Promise<any> => {
-  return client.patch(`/offer_stock/${productId}`, { stock });
+): Promise<EmagApiResponse<any>> => {
+  const current = await readProducts(client, { id: productId, itemsPerPage: 1 });
+  if (current.isError) return current;
+  const product = Array.isArray(current.results) ? current.results[0] : current.results;
+  if (!product) {
+    return {
+      isError: true,
+      messages: [`Produsul eMAG ${productId} nu a fost găsit`],
+      results: [],
+    };
+  }
+
+  const offerWarehouse =
+    product.stock?.[0]?.warehouse_id ??
+    product.handling_time?.[0]?.warehouse_id ??
+    1;
+
+  const nextStock = (Array.isArray(stock) && stock.length > 0
+    ? stock
+    : [{ warehouse_id: offerWarehouse, value: 0 }]
+  ).map((row) => ({
+    warehouse_id:
+      row.warehouse_id === 1 && offerWarehouse !== 1 ? offerWarehouse : row.warehouse_id || offerWarehouse,
+    value: Math.max(0, Number(row.value) || 0),
+  }));
+
+  return saveProductOffer(client, {
+    id: productId,
+    status: product.status,
+    sale_price: product.sale_price,
+    vat_id: product.vat_id,
+    handling_time: product.handling_time?.length
+      ? product.handling_time
+      : [{ warehouse_id: offerWarehouse, value: 0 }],
+    stock: nextStock,
+  });
 };
 
 export const saveMeasurements = async (

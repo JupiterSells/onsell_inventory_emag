@@ -61,7 +61,13 @@ router.patch('/stock/:productId', asyncHandler(async (req: Request, res: Respons
   const productId = parseInt(req.params.productId, 10);
   const { stock } = req.body;
   const result = await client.updateStock(productId, stock);
-  res.json({ success: true, data: result });
+  const message = Array.isArray(result.messages) ? result.messages.filter(Boolean).join(', ') : undefined;
+  res.status(result.isError ? 400 : 200).json({
+    success: !result.isError,
+    data: result.results,
+    messages: result.messages,
+    error: result.isError ? message || 'Nu am putut actualiza stocul pe eMAG' : undefined,
+  });
 }));
 
 router.post('/measurements', asyncHandler(async (req: Request, res: Response) => {
