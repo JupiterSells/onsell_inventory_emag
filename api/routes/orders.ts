@@ -76,6 +76,24 @@ router.get('/:orderId/attachments', asyncHandler(async (req: Request, res: Respo
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));
 
+router.get('/:orderId/invoice-pdf', asyncHandler(async (req: Request, res: Response) => {
+  const client = getClientForRequest(req);
+  const orderId = parseInt(req.params.orderId, 10);
+  const preferredUrl = typeof req.query.url === 'string' ? req.query.url : undefined;
+  const file = await client.downloadOrderInvoicePdf(orderId, preferredUrl);
+  if (!file) {
+    res.status(404).json({
+      success: false,
+      error: 'Factura nu a putut fi descărcată din eMAG.',
+    });
+    return;
+  }
+  const filename = file.filename.replace(/"/g, '').replace(/[^\w.\-ăâîșțĂÂÎȘȚ ]+/g, '_') || 'factura.pdf';
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+  res.send(file.buffer);
+}));
+
 router.post('/attachments/save', asyncHandler(async (req: Request, res: Response) => {
   const client = getClientForRequest(req);
   const result = await client.saveAttachment(req.body);

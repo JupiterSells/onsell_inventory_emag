@@ -102,6 +102,29 @@ export class Emag {
     return attachmentMethods.saveAttachment(this.client, data);
   }
 
+  /**
+   * Download the invoice PDF with API credentials so the seller never sees
+   * marketplace.emag.* login. Prefers `preferredUrl` when it is an attachment
+   * on this order; otherwise picks type 1 then type 11.
+   */
+  async downloadOrderInvoicePdf(
+    orderId: number,
+    preferredUrl?: string
+  ): Promise<{ buffer: Buffer; filename: string } | null> {
+    if (preferredUrl) {
+      const buf = await attachmentMethods.downloadAuthenticatedFile(this.client, preferredUrl);
+      if (buf) return { buffer: buf, filename: filenameFromUrl(preferredUrl) };
+    }
+
+    const attachments = await this.getAttachments(orderId);
+    const invoice = attachmentMethods.pickInvoiceAttachment(attachments.results);
+    if (!invoice?.url) return null;
+
+    const buf = await attachmentMethods.downloadAuthenticatedFile(this.client, invoice.url);
+    if (!buf) return null;
+    return { buffer: buf, filename: invoice.name || filenameFromUrl(invoice.url) };
+  }
+
   // ============ RMA (RETURNS) ============
 
   async getRma(filters?: RmaFilterOptions): Promise<EmagApiResponse<EmagRma[]>> {
@@ -245,3 +268,14 @@ export const createEmagClient = (platform?: Platform): Emag => {
 export const createDefaultClient = (): Emag => {
   return createEmagClient();
 };
+
+function filenameFromUrl(url: string): string {
+  try {
+    const path = new URL(url).pathname;
+    const last = path.split('/').filter(Boolean).pop() || '';
+    if (last && /\.pdf$/i.test(last)) return last;
+  } catch {
+    /* keep default */
+  }
+  return 'factura.pdf';
+}
