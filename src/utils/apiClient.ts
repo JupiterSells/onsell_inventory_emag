@@ -221,6 +221,35 @@ export class ApiClient {
     return this.request<T>('GET', endpoint, undefined, params);
   }
 
+  /**
+   * Downloads a file rather than a JSON envelope. The AWB label endpoints
+   * (§"Reading AWB PDF files") answer with the PDF bytes — or base64 ZPL text —
+   * and follow a redirect to reach it, so they cannot go through `request()`,
+   * which parses as JSON and refuses redirects.
+   */
+  async getFile(
+    endpoint: string,
+    params?: Record<string, any>
+  ): Promise<{ buffer: Buffer; contentType: string }> {
+    const config: AxiosRequestConfig = {
+      method: 'GET',
+      url: `${this.config.baseUrl}${endpoint}`,
+      headers: { Authorization: `Basic ${this.token}` },
+      params,
+      responseType: 'arraybuffer',
+      maxRedirects: 5,
+      timeout: 30000,
+    };
+
+    return bucketFor(endpoint).schedule(async () => {
+      const response = await axios(config);
+      return {
+        buffer: Buffer.from(response.data),
+        contentType: String(response.headers['content-type'] || ''),
+      };
+    });
+  }
+
   async patch<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>('PATCH', endpoint, data);
   }

@@ -18,17 +18,25 @@ router.post('/save', asyncHandler(async (req: Request, res: Response) => {
   res.json({ success: !result.isError, data: result.results, messages: result.messages });
 }));
 
+// eMAG returns the label file itself, so both routes stream bytes rather than
+// wrapping them in the usual JSON envelope.
 router.get('/pdf/:emagId', asyncHandler(async (req: Request, res: Response) => {
   const client = getClientForRequest(req);
+  const emagId = parseInt(req.params.emagId, 10);
   const format = (req.query.format as string) || 'A4';
-  const result = await client.getAwbPdf(parseInt(req.params.emagId, 10), format);
-  res.json({ success: true, data: result });
+  const label = await client.getAwbPdf(emagId, format);
+  res.setHeader('Content-Type', label.contentType || 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="awb-${emagId}-${format}.pdf"`);
+  res.send(label.buffer);
 }));
 
 router.get('/zpl/:emagId', asyncHandler(async (req: Request, res: Response) => {
   const client = getClientForRequest(req);
-  const result = await client.getAwbZpl(parseInt(req.params.emagId, 10));
-  res.json({ success: true, data: result });
+  const emagId = parseInt(req.params.emagId, 10);
+  const label = await client.getAwbZpl(emagId);
+  res.setHeader('Content-Type', label.contentType || 'application/octet-stream');
+  res.setHeader('Content-Disposition', `attachment; filename="awb-${emagId}.zpl"`);
+  res.send(label.buffer);
 }));
 
 router.get('/localities', asyncHandler(async (req: Request, res: Response) => {

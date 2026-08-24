@@ -16,19 +16,36 @@ export const saveAwb = async (
   return client.save<any>('/awb/save', items);
 };
 
+export interface AwbLabel {
+  buffer: Buffer;
+  contentType: string;
+}
+
+/** Returns the PDF bytes; only AWBs issued through the API have an `emag_id`. */
 export const readAwbPdf = async (
   client: ApiClient,
   emagId: number,
   format: string = 'A4'
-): Promise<any> => {
-  return client.get(`/awb/read_pdf`, { emag_id: emagId, awb_format: format });
+): Promise<AwbLabel> => {
+  const file = await client.getFile('/awb/read_pdf', {
+    emag_id: emagId,
+    awb_format: format,
+  });
+  return { buffer: file.buffer, contentType: file.contentType || 'application/pdf' };
 };
 
-export const readAwbZpl = async (
-  client: ApiClient,
-  emagId: number
-): Promise<any> => {
-  return client.get(`/awb/read_zpl`, { emag_id: emagId });
+/**
+ * eMAG answers `read_zpl` with base64-encoded ZPL, so it is decoded here and the
+ * caller gets printable label data.
+ */
+export const readAwbZpl = async (client: ApiClient, emagId: number): Promise<AwbLabel> => {
+  const file = await client.getFile('/awb/read_zpl', { emag_id: emagId });
+  const text = file.buffer.toString('utf8').trim();
+  const isBase64 = text.length > 0 && /^[A-Za-z0-9+/\r\n]+={0,2}$/.test(text);
+  return {
+    buffer: isBase64 ? Buffer.from(text, 'base64') : file.buffer,
+    contentType: 'application/octet-stream',
+  };
 };
 
 export const readPackages = async (

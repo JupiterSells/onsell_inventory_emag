@@ -149,11 +149,11 @@ export class Emag {
     return awbMethods.saveAwb(this.client, data);
   }
 
-  async getAwbPdf(emagId: number, format: string = 'A4'): Promise<any> {
+  async getAwbPdf(emagId: number, format: string = 'A4'): Promise<awbMethods.AwbLabel> {
     return awbMethods.readAwbPdf(this.client, emagId, format);
   }
 
-  async getAwbZpl(emagId: number): Promise<any> {
+  async getAwbZpl(emagId: number): Promise<awbMethods.AwbLabel> {
     return awbMethods.readAwbZpl(this.client, emagId);
   }
 
