@@ -1,5 +1,6 @@
 import { Request } from 'express';
 import { Emag, createEmagClient, Platform } from '../../src';
+import { ApiError } from './errorHandler';
 
 let emagClient: Emag | null = null;
 let credentialsConfigured = false;
@@ -20,10 +21,21 @@ export const getEmagClient = (): Emag | null => {
 };
 
 /**
- * Resolve an eMAG client for a request. Prefers per-request credential
- * headers (X-Emag-Username, X-Emag-Password, X-Emag-Platform) sent by
- * node_api's ConnectionJobScheduler. Falls back to the singleton client
- * for backward compatibility.
+ * How to treat a request that carries no credential headers.
+ *
+ * `off` is the correct setting and the only safe one once this process serves
+ * more than one account: without headers there is no way to know whose account
+ * the caller meant, and the env singleton belongs to whoever was configured
+ * last. `warn` exists only to carry existing tenants across the change — it
+ * logs every occurrence so the callers can be found and fixed first.
+ */
+const FALLBACK_MODE: 'warn' | 'off' =
+  process.env.CREDENTIAL_FALLBACK === 'off' ? 'off' : 'warn';
+
+/**
+ * Resolve an eMAG client for a request from the per-request credential headers
+ * (X-Emag-Username, X-Emag-Password, X-Emag-Platform) that node_api attaches to
+ * every call.
  */
 export const getClientForRequest = (req: Request): Emag => {
   const username = req.headers['x-emag-username'] as string | undefined;
@@ -34,6 +46,17 @@ export const getClientForRequest = (req: Request): Emag => {
     return new Emag(username, password, platform);
   }
 
+  if (FALLBACK_MODE === 'off') {
+    throw new ApiError(
+      'eMAG credentials missing from request. The caller must send X-Emag-Username and X-Emag-Password.',
+      400
+    );
+  }
+
+  console.warn(
+    `[eMAG][SECURITY] ${req.method} ${req.originalUrl} arrived without credential headers; ` +
+      'falling back to the process-wide env credentials. This request may act on the wrong eMAG account.'
+  );
   return requireEmagClient();
 };
 
