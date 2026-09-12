@@ -6,16 +6,33 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  # The gate. These services hold no credentials of their own and pick their
+  # database from a header, so the way they break is a type that stopped
+  # lining up — and an image that fails to start is shipped to every tenant
+  # by `promote` without anybody looking at it. There is no test suite here
+  # to run; this is the cheapest check that is not nothing.
+  typecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+  build:
+    needs: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
       - uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DO_API_TOKEN }}
       - run: doctl registry login
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v6
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
