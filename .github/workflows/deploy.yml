@@ -14,7 +14,13 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     steps:
+      # No step after this one uses git, and leaving the token in
+      # .git/config is what makes checkout's own cleanup fail with
+      # "The process '/usr/bin/git' failed with exit code 128" — a warning on
+      # every green build, which is how a real warning gets missed.
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: 20
@@ -27,6 +33,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DO_API_TOKEN }}
