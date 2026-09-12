@@ -21,16 +21,25 @@ export const getEmagClient = (): Emag | null => {
 };
 
 /**
- * How to treat a request that carries no credential headers.
+ * How to treat a request that carries no credential headers: refuse it.
  *
- * `off` is the correct setting and the only safe one once this process serves
- * more than one account: without headers there is no way to know whose account
- * the caller meant, and the env singleton belongs to whoever was configured
- * last. `warn` exists only to carry existing tenants across the change — it
- * logs every occurrence so the callers can be found and fixed first.
+ * Without headers there is no way to know whose account the caller meant, and
+ * the env singleton belongs to whoever was configured last. `warn` — return
+ * the singleton and log — was the migration aid for tenants whose callers
+ * predated per-request credentials, and it was the default so that turning it
+ * on could not break them.
+ *
+ * It is no longer carrying anyone: krivas, prime and demo logged zero of those
+ * warnings between them over 24 hours. Defaulting to `warn` only meant the
+ * pool inherited the fallback by omission, on a process that serves every
+ * store on its host and so has no tenant whose credentials its environment
+ * could legitimately hold.
+ *
+ * `CREDENTIAL_FALLBACK=warn` re-arms it for one droplet, for as long as it
+ * takes to find the caller the warning names.
  */
 const FALLBACK_MODE: 'warn' | 'off' =
-  process.env.CREDENTIAL_FALLBACK === 'off' ? 'off' : 'warn';
+  process.env.CREDENTIAL_FALLBACK === 'warn' ? 'warn' : 'off';
 
 /**
  * Resolve an eMAG client for a request from the per-request credential headers
