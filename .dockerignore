@@ -1,0 +1,27 @@
+# Without this file `COPY . .` in the Dockerfile undoes the `npm ci` above it:
+# the host's node_modules replaces the one installed in the image, and the host
+# is arm64 while the droplets are amd64 — so `npm run build` then runs against
+# binaries for the wrong platform.
+node_modules
+build
+dist
+
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+
+npm-debug.log
+logs
+*.log
+
+coverage
+
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+*.swp
+*.swo
