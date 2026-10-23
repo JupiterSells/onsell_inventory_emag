@@ -62,6 +62,12 @@ export class Emag {
     return productMethods.updateStock(this.client, productId, stock);
   }
 
+  async updateStockBulk(
+    items: { id: number; stock: { warehouse_id: number; value: number }[] }[]
+  ): Promise<{ id: number; ok: boolean; messages: string[] }[]> {
+    return productMethods.updateStockBulk(this.client, items);
+  }
+
   async saveMeasurements(data: MeasurementsSaveRequest | MeasurementsSaveRequest[]): Promise<EmagApiResponse<any>> {
     return productMethods.saveMeasurements(this.client, data);
   }

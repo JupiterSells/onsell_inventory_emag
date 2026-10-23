@@ -70,6 +70,22 @@ router.patch('/stock/:productId', asyncHandler(async (req: Request, res: Respons
   });
 }));
 
+router.post('/stock/bulk', asyncHandler(async (req: Request, res: Response) => {
+  const client = getClientForRequest(req);
+  const items = Array.isArray(req.body?.items) ? req.body.items : [];
+  const valid = items.filter(
+    (item: any) => Number.isInteger(Number(item?.id)) && Number(item.id) > 0 && Array.isArray(item?.stock) && item.stock.length > 0
+  );
+  if (valid.length === 0 || valid.length !== items.length) {
+    res.status(400).json({ success: false, error: 'Fiecare element are nevoie de id și stock' });
+    return;
+  }
+  const outcomes = await client.updateStockBulk(
+    valid.map((item: any) => ({ id: Number(item.id), stock: item.stock }))
+  );
+  res.json({ success: outcomes.every((o) => o.ok), data: outcomes });
+}));
+
 router.post('/measurements', asyncHandler(async (req: Request, res: Response) => {
   const client = getClientForRequest(req);
   const result = await client.saveMeasurements(req.body);
