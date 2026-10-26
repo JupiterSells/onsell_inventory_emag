@@ -48,6 +48,16 @@ export const formatEmagError = (error: any): { message: string; details?: any } 
   };
 };
 
+/**
+ * Mount in front of each router so a handler's route template survives to an
+ * app-level handler: Express resets `req.baseUrl` before one runs, but keeps
+ * `req.route`.
+ */
+export const recordMountPath = (req: Request, res: Response, next: NextFunction) => {
+  res.locals.mountPath = req.baseUrl;
+  next();
+};
+
 export const errorHandler = (
   err: Error | ApiError,
   req: Request,

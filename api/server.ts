@@ -1,5 +1,7 @@
 // Must stay first: patches axios before any client is constructed.
 import '../src/utils/demoGuard';
+// Second, for the same reason: the feedback trace patches axios and console.
+import '../src/utils/feedbackTrace';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { config } from 'dotenv';
@@ -11,8 +13,12 @@ import awbRouter from './routes/awb';
 import categoriesRouter from './routes/categories';
 import invoicesRouter from './routes/invoices';
 import configRouter from './routes/config';
-import { errorHandler } from './middleware/errorHandler';
+import { errorHandler, recordMountPath } from './middleware/errorHandler';
 import { requireInternalApiKey } from './middleware/internalAuth';
+import { feedbackTraceMiddleware, handlerManifest, traceRecordHandler } from '../src/utils/feedbackTrace';
+
+/** The name node_api's trace shows for this service's spans. */
+const SERVICE = 'emag';
 
 config();
 
@@ -81,14 +87,31 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
+/** The handler manifest: each mount's router file, put on the server span as `code.filepath`. */
+const ROUTE_FILES: Record<string, string> = {
+  '/api/config': 'api/routes/config.ts',
+  '/api/products': 'api/routes/products.ts',
+  '/api/orders': 'api/routes/orders.ts',
+  '/api/rma': 'api/routes/rma.ts',
+  '/api/awb': 'api/routes/awb.ts',
+  '/api/categories': 'api/routes/categories.ts',
+  '/api/invoices': 'api/routes/invoices.ts',
+};
+
+app.get('/internal/trace/handlers', requireInternalApiKey, (_req: Request, res: Response) => {
+  res.json({ service: SERVICE, handlers: handlerManifest(app, ROUTE_FILES) });
+});
+app.get('/internal/trace/:traceId', requireInternalApiKey, traceRecordHandler(SERVICE));
+
 app.use('/api', requireInternalApiKey);
-app.use('/api/config', configRouter);
-app.use('/api/products', productsRouter);
-app.use('/api/orders', ordersRouter);
-app.use('/api/rma', rmaRouter);
-app.use('/api/awb', awbRouter);
-app.use('/api/categories', categoriesRouter);
-app.use('/api/invoices', invoicesRouter);
+app.use('/api', feedbackTraceMiddleware(SERVICE, ROUTE_FILES));
+app.use('/api/config', recordMountPath, configRouter);
+app.use('/api/products', recordMountPath, productsRouter);
+app.use('/api/orders', recordMountPath, ordersRouter);
+app.use('/api/rma', recordMountPath, rmaRouter);
+app.use('/api/awb', recordMountPath, awbRouter);
+app.use('/api/categories', recordMountPath, categoriesRouter);
+app.use('/api/invoices', recordMountPath, invoicesRouter);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({

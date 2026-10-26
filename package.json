@@ -13,7 +13,8 @@
     "start": "node build/index.js",
     "api": "ts-node api/server.ts",
     "api:dev": "npx nodemon --exec ts-node api/server.ts",
-    "api:build": "npm run build && node build/api/server.js"
+    "api:build": "npm run build && node build/api/server.js",
+    "test": "node --require ts-node/register --test test/*.test.ts"
   },
   "repository": {
     "type": "git",
