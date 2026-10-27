@@ -206,6 +206,28 @@
       ],
       "output": "POST /admin/api/2026-07/graphql.json x-shopify-access-token: [cred:x_shopify_access_token h:49af1d1151 n:38] 200",
       "replaced": 1
+    },
+    {
+      "name": "span headers already fingerprinted by the service (ingest re-read)",
+      "tenant": "krivas",
+      "tier": "dedicated",
+      "kind": "value",
+      "input": {
+        "headers": {
+          "authorization": "Basic [cred:basic acct=seller@krivas.ro h:0123456789 n:15]",
+          "x-api-key": "[cred:x_api_key h:0123456789 n:20]",
+          "proxy-authorization": "Bearer [cred:bearer h:0123456789 n:40]"
+        }
+      },
+      "secrets": [],
+      "output": {
+        "headers": {
+          "authorization": "Basic [cred:basic acct=seller@krivas.ro h:0123456789 n:15]",
+          "x-api-key": "[cred:x_api_key h:0123456789 n:20]",
+          "proxy-authorization": "Bearer [cred:bearer h:0123456789 n:40]"
+        }
+      },
+      "replaced": 0
     }
   ]
 }

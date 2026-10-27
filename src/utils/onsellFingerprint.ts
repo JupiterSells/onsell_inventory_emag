@@ -120,6 +120,9 @@ export interface Fingerprinter {
 type Fp = (kind: string, v: string, acct?: string) => string;
 
 function authValue(fp: Fp, raw: string, key: Buffer | null): string {
+  // Already a fingerprint (ingest re-reads what a service wrote): fingerprinting
+  // it again would replace the account with the length of the first one.
+  if (/^(Basic|Bearer|Token|Digest)\s+\[cred:/i.test(raw.trim())) return raw;
   const m = /^(Basic|Bearer|Token|Digest)\s+(\S+)$/i.exec(raw.trim());
   if (!m) return fp('authorization', raw);
   const scheme = m[1].toLowerCase();

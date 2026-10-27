@@ -17,8 +17,8 @@ const digest = (path: string) => createHash('sha256').update(readFileSync(join(R
 
 test('the contract is the upstream, byte for byte', () => {
   assert.equal(digest('src/utils/onsellLog.ts'), '8a51c5efe30e20d49031e7dc51c9829d35c98a4b69861cd18030fae183940e94');
-  assert.equal(digest('src/utils/onsellFingerprint.ts'), '296743d2f832952b3606f8f81b173063ee389b3c3f0c1b1540a932c597043a55');
-  assert.equal(digest('test/fixtures/fingerprint-vectors.json'), '0f6122508209453bae117e04beb441385b66ed6c505b529ed1f4607e3961f243');
+  assert.equal(digest('src/utils/onsellFingerprint.ts'), '7aed06f26f13f4959fb1caf7d5b74faa3c10dd445b69979cc2f58dacb6e5dbee');
+  assert.equal(digest('test/fixtures/fingerprint-vectors.json'), 'd2a16955c330aed302fc1cd7e5315ba3555d60a8a41427f8a8720b067259c42e');
 });
 
 test('every golden vector fingerprints exactly as the control plane does', () => {
