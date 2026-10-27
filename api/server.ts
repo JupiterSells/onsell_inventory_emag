@@ -1,5 +1,8 @@
 // Must stay first: patches axios before any client is constructed.
 import '../src/utils/demoGuard';
+// Next, before anything wraps the console or builds a client: the log contract.
+import '../src/utils/logContract';
+import { onsellLogMiddleware } from '../src/utils/onsellLog';
 // Second, for the same reason: the feedback trace patches axios and console.
 import '../src/utils/feedbackTrace';
 import express, { Application, Request, Response, NextFunction } from 'express';
@@ -23,6 +26,8 @@ const SERVICE = 'emag';
 config();
 
 const app: Application = express();
+// First middleware: every request is a server span, credentials fingerprinted.
+app.use(onsellLogMiddleware());
 const PORT = process.env.API_PORT || 8002;
 
 const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
