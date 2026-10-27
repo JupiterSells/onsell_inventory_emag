@@ -275,7 +275,9 @@ function installConsoleCapture(): void {
       } catch {
         // Tracing never costs the log line it was copying.
       }
-      original(...args);
+      // stdout gets the same reduction: an axios object printed whole carries
+      // config.headers, and container logs are read by people and agents.
+      original(...args.map(loggable));
     };
   }
 }

@@ -255,6 +255,31 @@ test(`no credential, under any of this service's header names, is in the header 
   }
 });
 
+test('an axios error or response printed by the service reaches stdout without its headers, sampled or not', async () => {
+  const written: string[] = [];
+  const out = process.stdout.write.bind(process.stdout);
+  const err = process.stderr.write.bind(process.stderr);
+  const capture = (chunk: unknown) => {
+    written.push(String(chunk));
+    return true;
+  };
+  process.stdout.write = capture as typeof process.stdout.write;
+  process.stderr.write = capture as typeof process.stderr.write;
+  try {
+    await call(SAMPLED);
+    await call();
+  } finally {
+    process.stdout.write = out;
+    process.stderr.write = err;
+  }
+
+  const text = written.join('');
+  assert.match(text, /\[ERROR\] upstream: \[axios GET .*\/fail → 500\]/);
+  for (const [name, secret] of SECRETS) {
+    assert.ok(!text.includes(secret), `${name} reached stdout`);
+  }
+});
+
 test('the header is cut to 3 KB, server span first', () => {
   const span = (i: number): Span => ({
     traceId: TRACE_ID,

@@ -64,7 +64,10 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  console.error(`[ERROR] ${req.method} ${req.path}:`, err);
+  // The message and the stack, never the error object: an AxiosError carries
+  // config.headers, and eMAG's Authorization header is the seller's
+  // username:password in base64.
+  console.error(`[ERROR] ${req.method} ${req.path}: ${err.message}`, err.stack);
 
   let statusCode = 500;
   let message = 'An unexpected error occurred';
